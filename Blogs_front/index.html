@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista postów</title>
+</head>
+<body>
+    <nav>
+        <a href="index.html">Posty</a> |
+        <a href="dodaj.html">Dodaj post</a> |
+        <a href="register.html">Rejestracja</a> |
+        <a href="komentarze.html">Komentarze</a>
+    </nav>
+    <hr>
+
+    <h1>Posty</h1>
+    <ul id="posty"></ul>
+
+    <script>
+        const login = prompt("Login:");
+        const haslo = prompt("Hasło:");
+    
+        fetch('http://localhost:8080/posts', {
+            headers: {
+                'Authorization': 'Basic ' + btoa(login + ':' + haslo)
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                const ul = document.getElementById('posty');
+                data.content.forEach(post => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<strong>${post.tytul}</strong><br>${post.tresc}<br><em>Komentarze:</em><ul id="komentarze-${post.id}"></ul>`;
+                    ul.appendChild(li);
+    
+                    fetch(`http://localhost:8080/komentarze/${post.id}`, {
+                        headers: {
+                            'Authorization': 'Basic ' + btoa(login + ':' + haslo)
+                        }
+                    })
+                        .then(res => res.json())
+                        .then(komentarze => {
+                            const ulKomentarze = document.getElementById(`komentarze-${post.id}`);
+                            komentarze.forEach(k => {
+                                const liK = document.createElement('li');
+                                liK.textContent = `${k.autor.login}: ${k.tresc}`;
+                                ulKomentarze.appendChild(liK);
+                            });
+                        });
+                });
+            })
+            .catch(err => {
+                console.error('Błąd:', err);
+                alert("Błąd pobierania postów lub komentarzy");
+            });
+    </script>
+    
+    
+</body>
+</html>

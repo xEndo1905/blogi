@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Komentarze</title>
+</head>
+<body>
+    <h1>Komentarze do posta</h1>
+
+    <label>ID posta: <input type="number" id="postId" value="1"></label>
+    <button onclick="pobierzKomentarze()">Pokaż komentarze</button>
+
+    <ul id="listaKomentarzy"></ul>
+
+    <h2>Dodaj komentarz</h2>
+    <form id="komentarzForm">
+        Treść: <textarea id="trescKomentarza"></textarea><br>
+        Login: <input type="text" id="login"><br>
+        Hasło: <input type="password" id="haslo"><br>
+        <button type="submit">Wyślij komentarz</button>
+    </form>
+
+    <script>
+        let login = "";
+        let haslo = "";
+
+        function pobierzKomentarze() {
+            const postId = document.getElementById('postId').value;
+            login = document.getElementById('login').value;
+            haslo = document.getElementById('haslo').value;
+
+            fetch(`http://localhost:8080/komentarze/${postId}`, {
+                headers: {
+                    'Authorization': 'Basic ' + btoa(login + ':' + haslo)
+                }
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("Nie udało się pobrać komentarzy");
+                    return res.json();
+                })
+                .then(komentarze => {
+                    const ul = document.getElementById('listaKomentarzy');
+                    ul.innerHTML = '';
+                    komentarze.forEach(k => {
+                        const li = document.createElement('li');
+                        li.textContent = k.autor.login + ': ' + k.tresc;
+                        ul.appendChild(li);
+                    });
+                })
+                .catch(err => alert('Błąd: ' + err.message));
+        }
+
+        document.getElementById('komentarzForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const postId = document.getElementById('postId').value;
+            const tresc = document.getElementById('trescKomentarza').value;
+            login = document.getElementById('login').value;
+            haslo = document.getElementById('haslo').value;
+
+            fetch(`http://localhost:8080/komentarze/${postId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic ' + btoa(login + ':' + haslo)
+                },
+                body: JSON.stringify({ tresc: tresc })
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        return res.text().then(text => { throw new Error(text); });
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    alert('Komentarz dodany!');
+                    pobierzKomentarze(); // odśwież komentarze
+                })
+                .catch(err => alert('Błąd: ' + err.message));
+        });
+    </script>
+</body>
+</html>

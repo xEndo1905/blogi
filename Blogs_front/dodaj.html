@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Dodaj post</title>
+</head>
+<body>
+    <h1>Dodaj nowy post</h1>
+    <form id="postForm">
+        Tytuł: <input type="text" id="tytul"><br>
+        Treść: <textarea id="tresc"></textarea><br>
+        Login: <input type="text" id="login"><br>
+        Hasło: <input type="password" id="haslo"><br>
+        <button type="submit">Wyślij</button>
+    </form>
+
+    <script>
+        document.getElementById('postForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const login = document.getElementById('login').value;
+            const haslo = document.getElementById('haslo').value;
+
+            fetch('http://localhost:8080/posts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic ' + btoa(login + ':' + haslo)
+                },
+                body: JSON.stringify({
+                    tytul: document.getElementById('tytul').value,
+                    tresc: document.getElementById('tresc').value
+                })
+            })
+                .then(res => res.json())
+                .then(data => alert('Post dodany! ID: ' + data.id))
+                .catch(err => console.error('Błąd:', err));
+        });
+    </script>
+</body>
+</html>
